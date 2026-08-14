@@ -1,0 +1,24 @@
+{
+  "name": "Lean 4",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+
+  "onCreateCommand": "curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none && echo 'export PATH=\"$HOME/.elan/bin:$PATH\"' >> ~/.bashrc",
+
+  "postCreateCommand": "$HOME/.elan/bin/lake build",
+
+  "remoteEnv": {
+    "PATH": "${containerEnv:HOME}/.elan/bin:${containerEnv:PATH}"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "leanprover.lean4"
+      ]
+    }
+  }
+}
