@@ -1,1 +1,3 @@
-import SetTheory.basic
+import SetTheory.Axioms
+import SetTheory.Basic
+import SetTheory.Ordinals

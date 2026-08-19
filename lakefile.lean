@@ -1,9 +1,9 @@
 import Lake
 open Lake DSL
 
-package «project» where
+package «set-theory» where
   -- options
 
 @[default_target]
-lean_lib «Project» where
+lean_lib «SetTheory» where
   -- config
