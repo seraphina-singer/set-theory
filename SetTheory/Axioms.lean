@@ -1,4 +1,4 @@
-noncomputable section
+noncomputable section axioms
 
 opaque V : Type
 
@@ -43,11 +43,11 @@ axiom ax_separation {X : V} {φ : V → Prop} : ∀ u : V, u ∈ {x ∈ X | φ} 
 def «∅» : V := {u ∈ ax_exists_set | fun _ ↦ False}
 notation:max "∅" => «∅»
 
-opaque union : V → V
-prefix:65 (priority := high) "⋃ " => union
-def union_2 : V → V → V := fun a => (fun b => (⋃ {a, b}))
-infixr:70 (priority := high) " ∪ " => union_2
-axiom ax_union {X : V} : ∀ u : V, u ∈ ⋃ X ↔ ∃ z : X, u ∈ z
+opaque Un : V → V
+prefix:65 (priority := high) "⋃ " => Un
+def un : V → V → V := fun a => (fun b => (⋃ {a, b}))
+infixr:70 (priority := high) " ∪ " => un
+axiom ax_union {X : V} : ∀ u : V, u ∈ ⋃ X ↔ ∃ x : X, u ∈ x
 
 def succ : V → V := fun a => (a ∪ {a})
 
@@ -67,3 +67,5 @@ axiom ax_infinity : inductive_set exists_inductive_set
 opaque replace : (X : V) → (X → V) → V
 notation:max F "[" X "]" => replace X F
 axiom ax_replacement {X : V} {F : X → V} : ∀ u : V, u ∈ F[X] ↔ ∃ x : X, F x = u
+
+end axioms
