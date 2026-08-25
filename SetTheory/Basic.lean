@@ -1,5 +1,7 @@
 import SetTheory.Axioms
 
+theorem subtype_value (x X : V) (h : x ∈ X) : (⟨x, h⟩ : X).val = x := by rfl
+
 section extensionality
 
 theorem eq_iff_same_elements (X Y : V) : X = Y ↔ ∀ u : V, u ∈ X ↔ u ∈ Y := by
@@ -165,6 +167,6 @@ theorem successor_unique {X a : V} : X = succ a ↔ ∀ u : V, u ∈ X ↔ u ∈
     rw [eq_iff_same_elements]
     intro u
     rw [element_of_successor]
-    exact h u 
+    exact h u
 
 end successor
