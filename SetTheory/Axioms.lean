@@ -7,20 +7,11 @@ opaque V : Type
 opaque is_element : V → V → Prop
 infix:50 (priority := high) " ∈ " => is_element
 
-instance : CoeSort V Type where
-  coe X := {Y : V // Y ∈ X}
-instance {X : V} : CoeOut (V → X) (V → V) where
-  coe f := fun x => (f x)
-instance {X : V} : Coe (V → V) (X → V) where
-  coe f := fun x => (f x)
-instance {X Y : V} : CoeOut (X → Y) (X → V) where
-  coe f := fun x => (f x)
-
-def not_is_element : V → V → Prop := fun x => (fun X => ¬ (x ∈ X))
+def not_is_element (x X : V) : Prop := ¬ (x ∈ X)
 infix:50 (priority := high) " ∉ " => not_is_element
-def is_subset : V → V → Prop := fun X => (fun Y => (∀ u : X, u ∈ Y))
+def is_subset (X Y : V) : Prop := ∀ u : V, u ∈ X → u ∈ Y
 infix:50 (priority := high) " ⊆ " => is_subset
-def not_is_subset : V → V → Prop := fun X => (fun Y => (¬ (X ⊆ Y)))
+def not_is_subset (X Y : V) : Prop := ¬ (X ⊆ Y)
 infix:50 (priority := high) " ⊈ " => not_is_subset
 
 notation (name := ignore) "ignore " _ign:arg e:arg => e
@@ -33,8 +24,8 @@ opaque pair : V → V → V
 notation:max "{" a ", " b "}" => pair a b
 axiom ax_pairing {a b : V} : ∀ u : V, u ∈ {a, b} ↔ u = a ∨ u = b
 
-def single {a : V}: V := {a, a}
-notation:max "{" a "}" => {a, a}
+def single (a : V) : V := {a, a}
+notation:max "{" a "}" => single a
 
 opaque separ : V → (V → Prop) → V
 notation:max "{" X:arg " ∈ " Y:arg " | " φ:arg"}" => ignore X (separ Y φ)
@@ -45,27 +36,27 @@ notation:max "∅" => «∅»
 
 opaque Un : V → V
 prefix:65 (priority := high) "⋃ " => Un
-def un : V → V → V := fun a => (fun b => (⋃ {a, b}))
+def un (X Y : V) : V := ⋃ {X, Y}
 infixr:70 (priority := high) " ∪ " => un
-axiom ax_union {X : V} : ∀ u : V, u ∈ ⋃ X ↔ ∃ x : X, u ∈ x
+axiom ax_union {X : V} : ∀ u : V, u ∈ ⋃ X ↔ ∃ x : V, x ∈ X ∧ u ∈ x
 
-def succ : V → V := fun a => (a ∪ {a})
+def succ (a : V) : V := a ∪ {a}
 
-def intersect : V → V := fun X => {Y ∈ (⋃ X) | fun u => ∀ x : X, u ∈ x}
-prefix:65 (priority := high) "⋂ " => intersect
-def intersect_2 : V → V → V := fun a => (fun b => (⋂ {a, b}))
-infixr:70 (priority := high) " ∩ " => intersect_2
+def Intersect (X : V) : V := {Y ∈ (⋃ X) | fun u => ∀ x : V, x ∈ X → u ∈ x}
+prefix:65 (priority := high) "⋂ " => Intersect
+def intersect (X Y : V) : V := ⋂ {X, Y}
+infixr:70 (priority := high) " ∩ " => intersect
 
 opaque power : V → V
 prefix:65 (priority := high) "𝒫 " => power
 axiom ax_power_set {X : V} : ∀ u : V, u ∈ 𝒫 X ↔ u ⊆ X
 
-def inductive_set : V → Prop := fun X => (∅ ∈ X ∧ ∀ u : X, succ u ∈ X)
+def is_inductive : V → Prop := fun X => (∅ ∈ X → ∀ u : V, u ∈ X → succ u ∈ X)
 opaque exists_inductive_set : V
-axiom ax_infinity : inductive_set exists_inductive_set
+axiom ax_infinity : is_inductive exists_inductive_set
 
-opaque replace : (X : V) → (X → V) → V
+opaque replace : V → (V → V) → V
 notation:max F "[" X "]" => replace X F
-axiom ax_replacement {X : V} {F : X → V} : ∀ u : V, u ∈ F[X] ↔ ∃ x : X, F x = u
+axiom ax_replacement {X : V} {F : V → V} : ∀ u : V, u ∈ F[X] ↔ ∃ x : V, x ∈ X ∧ F x = u
 
 end axioms

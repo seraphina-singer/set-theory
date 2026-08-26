@@ -1,65 +1,74 @@
 import SetTheory.Axioms
 import SetTheory.Basic
 
-def abc : Type := {X : Nat // X % 2 = 0}
-example : 2 = (⟨2, by rfl⟩ : abc).val := by rfl
-
 noncomputable section
 
-def ω : V := {x ∈ exists_inductive_set | fun x => ∀ X : V, inductive_set X → x ∈ X}
+def ω : V := {x ∈ exists_inductive_set | fun x => ∀ X : V, is_inductive X → x ∈ X}
 
-def is_irreflexive : V → Prop := fun X => ∀ x : X, x ∉ x
-def is_transitive_relation : V → Prop := fun X => ∀ x y z : X, x ∈ y ∧ y ∈ z → x ∈ z
-def is_p_order : V → Prop := fun X => is_irreflexive X ∧ is_transitive_relation X
-def is_total_relation : V → Prop := fun X => ∀ x y : X, x ≠ y → x ∈ y ∨ y ∈ x
-def is_l_order : V → Prop := fun X => is_p_order X ∧ is_total_relation X
-def is_least : V → V → Prop := fun u => (fun X => u ∈ X ∧ ∀ x : X, u ≠ x → u ∈ x)
-def is_w_order : V → Prop := fun X => (is_l_order X ∧ ∀ U : 𝒫 X, U ≠ ∅ → ∃ u : V, is_least u U)
-def is_transitive : V → Prop := fun X => (∀ x : X, x ⊆ X)
-def is_ord : V → Prop := fun X => (is_w_order X ∧ is_transitive X)
-def On : Type := {X : V // is_ord X}
+def is_irrfl (X : V) : Prop := ∀ x : V, x ∈ X → x ∉ x
+def is_trans_rel (X : V) : Prop := ∀ x y z : V, x ∈ X → y ∈ X → z ∈ X → x ∈ y → y ∈ z → x ∈ z
+def is_p_order (X : V) : Prop := is_irrfl X ∧ is_trans_rel X
+def is_tot_rel (X : V) : Prop := ∀ x y : V, x ∈ X → y ∈ X → x ≠ y → x ∈ y ∨ y ∈ x
+def is_l_order (X : V) : Prop := is_p_order X ∧ is_tot_rel X
+def is_least (u X : V) : Prop := u ∈ X ∧ (∀ x : V, x ∈ X → u ≠ x → u ∈ x)
+def has_least (X : V) : Prop := ∃ u : V, is_least u X
+def is_w_order (X : V) : Prop := is_l_order X ∧ (∀ U : V, U ∈ 𝒫 X → U ≠ ∅ → has_least U)
+def is_trans (X : V) : Prop := ∀ x : V, x ∈ X → x ⊆ X
+def is_ord (X : V) : Prop := is_w_order X ∧ is_trans X
 
-instance : Coe On V where
-  coe α := α.val
-
-theorem succ_irreflexive_is_irreflexive (X : V) : is_irreflexive X → is_irreflexive (succ X) := by
-  unfold is_irreflexive
+theorem ord_is_trans_rel {α : V} : is_ord α → is_trans_rel α := by
   intro h
-  intro x
-  obtain ⟨x, hx⟩ := x
-  rw [element_of_successor] at hx
-  rcases hx with h1 | h2
-  . exact h ⟨x, h1⟩
-  . rw [subtype_value]
-    rw [h2]
-    intro hc
-    exact h ⟨X, hc⟩ hc
+  obtain ⟨h1, h2⟩ := h
+  obtain ⟨h1, h3⟩ := h1
+  obtain ⟨h1, h4⟩ := h1
+  obtain ⟨h1, h5⟩ := h1
+  exact h5
 
-theorem succ_transitive_relation_is_transitive_relation (X : V) : is_transitive_relation X → is_transitive_relation (succ X) := by
-  unfold is_transitive_relation
+theorem ord_is_total_rel {α : V} : is_ord α → is_tot_rel α := by
   intro h
-  intro x y z
-  obtain ⟨x, hx⟩ := x
-  obtain ⟨y, hy⟩ := y
-  obtain ⟨z, hz⟩ := z
-  rw [subtype_value]
-  rw [subtype_value]
-  rw [subtype_value]
-  rw [element_of_successor] at hx
-  rw [element_of_successor] at hy
-  rw [element_of_successor] at hz
-  rcases hz with hz | hz
-  . sorry
-  . 
+  obtain ⟨h1, h2⟩ := h
+  obtain ⟨h1, h3⟩ := h1
+  obtain ⟨h1, h4⟩ := h1
+  exact h4
 
-theorem succ_p_order_is_p_order {X : V} : is_p_order X → is_p_order (succ X) := by
-  unfold is_p_order
+theorem subset_of_ord_has_least {U α : V} : is_ord α → U ⊆ α → U ≠ ∅ → has_least U := by
+  intro hα huα hu
+  obtain ⟨h1, h2⟩ := hα
+  obtain ⟨h1, h3⟩ := h1
+  rw [← elmt_of_p_set] at huα
+  exact h3 U huα hu
+
+theorem ord_is_trans {α : V} : is_ord α → is_trans α := by
   intro h
-  intro x
+  obtain ⟨h1, h2⟩ := h
+  exact h2
+
+theorem elmt_of_elmt_of_ord {u x α} : is_ord α → u ∈ x → x ∈ α → u ∈ α := by
+  intro hα hu hx
+  exact elmt_of_subset (ord_is_trans hα x hx) hu
+
+theorem elmt_of_ord_is_ord (X : V) : is_ord X → (∀ x : V, x ∈ X → is_ord x) := by
+  intro hX x hxX
   constructor
-  . intro x
-    obtain ⟨x, hx⟩ := x
-    rw [element_of_successor] at hx
-    rcases hx with h1 | h2
-    exact h.left ⟨x, h1⟩
-  sorry
+  . constructor
+    . constructor
+      . constructor
+        . sorry
+        . intro u v w hux hvx hwx huv hvw
+          have huX : u ∈ X := by exact elmt_of_elmt_of_ord hX hux hxX
+          have hvX : v ∈ X := by exact elmt_of_elmt_of_ord hX hvx hxX
+          have hwX : w ∈ X := by exact elmt_of_elmt_of_ord hX hwx hxX
+          --exact ord_is_trans_rel hX
+          sorry
+      . intro u v hux hvx huv
+        have huX : u ∈ X := by exact elmt_of_elmt_of_ord hX hux hxX
+        have hvX : v ∈ X := by exact elmt_of_elmt_of_ord hX hvx hxX
+        exact ord_is_total_rel hX u v huX hvX huv
+    . intro U hU1 hU2
+      rw [elmt_of_p_set] at hU1
+      have hUX : U ⊆ X := by exact subset_trans hU1 (ord_is_trans hX x hxX)
+      exact subset_of_ord_has_least hX hUX hU2
+  . intro u hux v hvu
+    have huX : u ∈ X := by exact elmt_of_elmt_of_ord hX hux hxX
+    have hvX : v ∈ X := by exact elmt_of_elmt_of_ord hX hvu huX
+    exact ord_is_trans_rel hX v u x hvX huX hxX hvu hux
