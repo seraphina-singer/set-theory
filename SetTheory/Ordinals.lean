@@ -16,20 +16,28 @@ def is_w_order (X : V) : Prop := is_l_order X ∧ (∀ U : V, U ∈ 𝒫 X → U
 def is_trans (X : V) : Prop := ∀ x : V, x ∈ X → x ⊆ X
 def is_ord (X : V) : Prop := is_w_order X ∧ is_trans X
 
-theorem ord_is_trans_rel {α : V} : is_ord α → is_trans_rel α := by
+theorem ord_is_irrfl {α x : V} : is_ord α → x ∈ α → x ∉ x := by
   intro h
   obtain ⟨h1, h2⟩ := h
   obtain ⟨h1, h3⟩ := h1
   obtain ⟨h1, h4⟩ := h1
   obtain ⟨h1, h5⟩ := h1
-  exact h5
+  exact h1 x
 
-theorem ord_is_total_rel {α : V} : is_ord α → is_tot_rel α := by
+theorem ord_is_trans_rel {α x y z: V} : is_ord α → x ∈ α → y ∈ α → z ∈ α → x ∈ y → y ∈ z → x ∈ z := by
   intro h
   obtain ⟨h1, h2⟩ := h
   obtain ⟨h1, h3⟩ := h1
   obtain ⟨h1, h4⟩ := h1
-  exact h4
+  obtain ⟨h1, h5⟩ := h1
+  exact h5 x y z
+
+theorem ord_is_total_rel {α x y : V} : is_ord α → x ∈ α → y ∈ α → x ≠ y → x ∈ y ∨ y ∈ x := by
+  intro h
+  obtain ⟨h1, h2⟩ := h
+  obtain ⟨h1, h3⟩ := h1
+  obtain ⟨h1, h4⟩ := h1
+  exact h4 x y
 
 theorem subset_of_ord_has_least {U α : V} : is_ord α → U ⊆ α → U ≠ ∅ → has_least U := by
   intro hα huα hu
@@ -38,37 +46,87 @@ theorem subset_of_ord_has_least {U α : V} : is_ord α → U ⊆ α → U ≠ �
   rw [← elmt_of_p_set] at huα
   exact h3 U huα hu
 
-theorem ord_is_trans {α : V} : is_ord α → is_trans α := by
+theorem ord_is_trans {α x : V} : is_ord α → x ∈ α → x ⊆ α := by
   intro h
   obtain ⟨h1, h2⟩ := h
-  exact h2
+  exact h2 x
 
 theorem elmt_of_elmt_of_ord {u x α} : is_ord α → u ∈ x → x ∈ α → u ∈ α := by
   intro hα hu hx
-  exact elmt_of_subset (ord_is_trans hα x hx) hu
+  exact elmt_of_subset (ord_is_trans hα hx) hu
 
-theorem elmt_of_ord_is_ord (X : V) : is_ord X → (∀ x : V, x ∈ X → is_ord x) := by
-  intro hX x hxX
+theorem elmt_of_ord_is_ord {α x : V} : is_ord α → x ∈ α → is_ord x := by
+  intro hα hxα
   constructor
   . constructor
     . constructor
       . constructor
-        . sorry
+        . intro u hu
+          have huα : u ∈ α := by exact elmt_of_elmt_of_ord hα hu hxα
+          exact ord_is_irrfl hα huα
         . intro u v w hux hvx hwx huv hvw
-          have huX : u ∈ X := by exact elmt_of_elmt_of_ord hX hux hxX
-          have hvX : v ∈ X := by exact elmt_of_elmt_of_ord hX hvx hxX
-          have hwX : w ∈ X := by exact elmt_of_elmt_of_ord hX hwx hxX
-          --exact ord_is_trans_rel hX
-          sorry
+          have huα : u ∈ α := by exact elmt_of_elmt_of_ord hα hux hxα
+          have hvα : v ∈ α := by exact elmt_of_elmt_of_ord hα hvx hxα
+          have hwα : w ∈ α := by exact elmt_of_elmt_of_ord hα hwx hxα
+          exact ord_is_trans_rel hα huα hvα hwα huv hvw
       . intro u v hux hvx huv
-        have huX : u ∈ X := by exact elmt_of_elmt_of_ord hX hux hxX
-        have hvX : v ∈ X := by exact elmt_of_elmt_of_ord hX hvx hxX
-        exact ord_is_total_rel hX u v huX hvX huv
+        have huα : u ∈ α := by exact elmt_of_elmt_of_ord hα hux hxα
+        have hvα : v ∈ α := by exact elmt_of_elmt_of_ord hα hvx hxα
+        exact ord_is_total_rel hα huα hvα huv
     . intro U hU1 hU2
       rw [elmt_of_p_set] at hU1
-      have hUX : U ⊆ X := by exact subset_trans hU1 (ord_is_trans hX x hxX)
-      exact subset_of_ord_has_least hX hUX hU2
+      have hUα : U ⊆ α := by exact subset_trans hU1 (ord_is_trans hα hxα)
+      exact subset_of_ord_has_least hα hUα hU2
   . intro u hux v hvu
-    have huX : u ∈ X := by exact elmt_of_elmt_of_ord hX hux hxX
-    have hvX : v ∈ X := by exact elmt_of_elmt_of_ord hX hvu huX
-    exact ord_is_trans_rel hX v u x hvX huX hxX hvu hux
+    have huα : u ∈ α := by exact elmt_of_elmt_of_ord hα hux hxα
+    have hvα : v ∈ α := by exact elmt_of_elmt_of_ord hα hvu huα
+    exact ord_is_trans_rel hα hvα huα hxα hvu hux
+
+theorem succ_of_ord_is_ord {α : V} : is_ord α → is_ord (succ α) := by
+  intro hα
+  constructor
+  . constructor
+    . constructor
+      . constructor
+        . intro x hxα hxx
+          rw [elmt_of_succ] at hxα
+          rcases hxα with hxα | hxα
+          . exact ord_is_irrfl hα hxα hxx
+          . rw [← hxα] at hα
+            exact ord_is_irrfl hα hxx hxx
+        . intro x y z hxα hyα hzα
+          have hz : is_ord z := by
+            rw [elmt_of_succ] at hzα
+            rcases hzα with hzα | hzα
+            . exact elmt_of_ord_is_ord hα hzα
+            . rw [hzα]
+              exact hα
+          exact elmt_of_elmt_of_ord hz
+      . intro x y hx hy hxy
+        rw [elmt_of_succ] at hx
+        rw [elmt_of_succ] at hy
+        rcases hx with hx | hx
+        . rcases hy with hy | hy
+          . exact ord_is_total_rel hα hx hy hxy
+          . left
+            rw [hy]
+            exact hx
+        . rcases hy with hy | hy
+          . right
+            rw [hx]
+            exact hy
+          . exfalso
+            rw [← hy] at hx
+            exact hxy hx
+    . intro U hUα hu
+      by_cases h : U ∩ α  = ∅
+      . sorry
+      . sorry
+  . intro x hxα u hux
+    rw [elmt_of_succ]
+    left
+    rw [elmt_of_succ] at hxα
+    rcases hxα with hxα | hxα
+    . exact elmt_of_elmt_of_ord hα hux hxα
+    . rw [← hxα]
+      exact hux

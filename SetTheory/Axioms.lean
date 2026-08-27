@@ -28,7 +28,7 @@ def single (a : V) : V := {a, a}
 notation:max "{" a "}" => single a
 
 opaque separ : V → (V → Prop) → V
-notation:max "{" X:arg " ∈ " Y:arg " | " φ:arg"}" => ignore X (separ Y φ)
+notation:max "{" x:arg " ∈ " X:arg " | " φ:arg"}" => ignore x (separ X φ)
 axiom ax_separation {X : V} {φ : V → Prop} : ∀ u : V, u ∈ {x ∈ X | φ} ↔ u ∈ X ∧ φ u
 
 def «∅» : V := {u ∈ ax_exists_set | fun _ ↦ False}
