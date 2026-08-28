@@ -82,7 +82,7 @@ theorem single_unique {X a : V} : X = {a} ↔ ∀ u : V, u ∈ X ↔ u = a := by
     rw [elmt_of_single]
     exact h u
 
-theorem input_in_single {a : V} : a ∈ {a} := by
+theorem set_in_single {a : V} : a ∈ {a} := by
   exact left_in_pair
 
 end singleton
@@ -128,18 +128,27 @@ theorem empty_set_unique {X : V} : X = ∅ ↔ ∀ x : V, x ∉ X := by
       exfalso
       exact empty_set_empty x hx
 
-theorem member_implies_ne_empty {x X : V} : x ∈ X → X ≠ ∅ := by
+theorem has_member_ne_empty {x X : V} : x ∈ X → X ≠ ∅ := by
   intro hx hX
   rw [empty_set_unique] at hX
   exact hX x hx
 
-theorem ne_emty_has_member {X : V} : X ≠ ∅ → ∃ x : V, x ∈ X := by
+theorem ne_empty_has_member {X : V} : X ≠ ∅ → ∃ x : V, x ∈ X := by
   intro h
   by_cases h2  : ∃ x : V, x ∈ X
   . exact h2
   . rw [not_exists] at h2
-    --rw [← empty_set_unique] at h2
-    sorry
+    change ∀ x : V, x ∉ X at h2
+    rw [← empty_set_unique] at h2
+    exfalso
+    exact h h2
+
+theorem non_empty_set {X : V} : X ≠ ∅ ↔ ∃ x : V, x ∈ X := by
+  constructor
+  . exact ne_empty_has_member
+  . intro h
+    obtain ⟨x, hx⟩ := h
+    exact has_member_ne_empty hx
 
 end empty_set
 
@@ -157,6 +166,11 @@ theorem Un_unique {Y X : V} : Y = ⋃ X ↔ ∀ u : V, u ∈ Y ↔ ∃ x : V, x 
     intro h u
     rw [elmt_of_Un]
     exact h u
+
+theorem elmt_subset_Un {x X : V} : x ∈ X → x ⊆ ⋃ X := by
+  intro hx u hu
+  rw [elmt_of_Un]
+  exists x
 
 end Union
 
@@ -195,16 +209,12 @@ theorem un_unique {Z X Y : V} : Z = X ∪ Y ↔ ∀ u : V, u ∈ Z ↔ u ∈ X �
     exact h u
 
 theorem left_subset_un {X Y : V} : X ⊆ X ∪ Y := by
-  intro x hx
-  rw [elmt_of_un]
-  left
-  exact hx
+  unfold un
+  exact elmt_subset_Un left_in_pair
 
 theorem right_subset_un {X Y : V} : Y ⊆ X ∪ Y := by
-  intro x hx
-  rw [elmt_of_un]
-  right
-  exact hx
+  unfold un
+  exact elmt_subset_Un right_in_pair
 
 end union
 
@@ -238,18 +248,75 @@ theorem elmt_of_Inter {u X} : u ∈ ⋂ X ↔ X ≠ ∅ ∧ ∀ x : V, x ∈ X �
     constructor
     . rw [elmt_of_Un] at h1
       obtain ⟨x, ⟨hxX, hux⟩⟩ := h1
-      exact member_implies_ne_empty hxX
+      exact has_member_ne_empty hxX
     . intro x
       exact h2 x
   . intro h
     obtain ⟨h1, h2⟩ := h
     constructor
-    . sorry
-    . sorry
+    . rw [elmt_of_Un]
+      rw [non_empty_set] at h1
+      obtain ⟨x, hx⟩ := h1
+      exists x
+      exact ⟨hx, h2 x hx⟩
+    . exact h2
+
+theorem Inter_unique {Y X : V} : Y = ⋂ X ↔ ∀ u : V, u ∈ Y ↔ X ≠ ∅ ∧ ∀ x : V, x ∈ X → u ∈ x := by
+  constructor
+  . intro h u
+    rw [h]
+    exact elmt_of_Inter
+  . rw [eq_iff_same_elmts]
+    intro h u
+    rw [elmt_of_Inter]
+    exact h u
+
+theorem Inter_subset_elmt {x X : V} : x ∈ X → ⋂ X ⊆ x := by
+  intro hx u hu
+  rw [elmt_of_Inter] at hu
+  obtain ⟨hX, hu⟩ := hu
+  exact hu x hx
 
 end Intersection
 
 section intersection
+
+theorem elmt_of_inter {u X Y : V} : u ∈ X ∩ Y ↔ u ∈ X ∧ u ∈ Y := by
+  unfold intersect
+  rw [elmt_of_Inter]
+  constructor
+  . intro h
+    obtain ⟨h1, h2⟩ := h
+    exact ⟨h2 X left_in_pair, h2 Y right_in_pair⟩
+  . intro h
+    obtain ⟨hX, hY⟩ := h
+    constructor
+    . exact has_member_ne_empty left_in_pair
+    . intro x hx
+      rw [elmt_of_pair] at hx
+      rcases hx with hx | hx
+      . rw [hx]
+        exact hX
+      . rw [hx]
+        exact hY
+
+theorem inter_unique {Z X Y : V} : Z = X ∩ Y ↔ ∀ u : V, u ∈ Z ↔ u ∈ X ∧ u ∈ Y := by
+  constructor
+  . intro h u
+    rw [h]
+    exact elmt_of_inter
+  . rw [eq_iff_same_elmts]
+    intro h u
+    rw [elmt_of_inter]
+    exact h u
+
+theorem inter_subset_left {X Y : V} : X ∩ Y ⊆ X := by
+  unfold intersect
+  exact Inter_subset_elmt left_in_pair
+
+theorem inter_subset_right {X Y : V} : X ∩ Y ⊆ Y := by
+  unfold intersect
+  exact Inter_subset_elmt right_in_pair
 
 end intersection
 

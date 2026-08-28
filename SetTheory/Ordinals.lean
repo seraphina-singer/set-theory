@@ -118,10 +118,52 @@ theorem succ_of_ord_is_ord {α : V} : is_ord α → is_ord (succ α) := by
           . exfalso
             rw [← hy] at hx
             exact hxy hx
-    . intro U hUα hu
-      by_cases h : U ∩ α  = ∅
-      . sorry
-      . sorry
+    . intro U hUα hU
+      rw [elmt_of_p_set] at hUα
+      by_cases h : U ∩ α = ∅
+      . have hU' : ∀ u : V, u ∈ U → u = α := by
+          intro u
+          intro hu
+          have huα : u ∈ succ α := by exact hUα u hu
+          rw [elmt_of_succ] at huα
+          rcases huα with huα | huα
+          . rw [empty_set_unique] at h
+            specialize h u
+            unfold not_is_element at h
+            rw [elmt_of_inter] at h
+            exfalso
+            exact h ⟨hu, huα⟩
+          . exact huα
+        exists α
+        constructor
+        . by_cases hαU : α ∈ U
+          . exact hαU
+          . rw [non_empty_set] at hU
+            obtain ⟨x, hx⟩ := hU
+            have hxα : x = α := by exact hU' x hx
+            rw [hxα] at hx
+            exfalso
+            exact hαU hx
+        . intro x hxU hαx
+          symm at hαx
+          exfalso 
+          exact hαx (hU' x hxU)
+      . change U ∩ α ≠ ∅ at h
+        have h2 : has_least (U ∩ α) := by
+          exact subset_of_ord_has_least hα inter_subset_right h
+        obtain ⟨u, hu⟩ := h2
+        exists u
+        obtain ⟨huU, hu⟩ := hu
+        constructor
+        . exact inter_subset_left u huU
+        . intro x hx hux
+          have hxα : x ∈ succ α := by exact elmt_of_subset hUα hx
+          rw [elmt_of_succ] at hxα
+          rcases hxα with hxα | hxα
+          . exact hu x (elmt_of_inter.2 ⟨hx, hxα⟩) hux
+          . rw [elmt_of_inter] at huU
+            rw [hxα]
+            exact huU.right
   . intro x hxα u hux
     rw [elmt_of_succ]
     left
